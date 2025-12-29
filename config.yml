@@ -1,0 +1,146 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#                    QUEUESYSTEM - CONFIGURACIÓN
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Este archivo controla todos los parámetros del sistema de colas.
+# Modifica estos valores para experimentar y encontrar la configuración óptima.
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKERS - Número de procesadores paralelos
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Más workers = más tareas simultáneas, pero más uso de recursos.
+# Recomendación: empezar con 2-4 y ajustar según carga.
+#
+workers:
+  # Workers para operaciones de datos (queries pesadas, exportaciones)
+  dataset: 8
+
+  # Workers para comandos del sistema (operaciones rápidas)
+  command: 4
+
+# ─────────────────────────────────────────────────────────────────────────────
+# QUEUES - Tamaño máximo de las colas
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Cuando la cola está llena, nuevas tareas son rechazadas.
+# Cola más grande = más tareas en espera, pero más uso de memoria.
+#
+queues:
+  # Cola de datasets
+  dataset:
+    max_size: 100
+
+  # Cola de comandos
+  command:
+    max_size: 50
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TIMEOUTS - Tiempos de espera (en segundos)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Controlan cuánto tiempo espera el sistema antes de desistir.
+#
+timeouts:
+  # Tiempo que un worker espera por una nueva tarea antes de verificar si debe detenerse
+  worker_poll: 0.5
+
+  # Tiempo máximo para detener workers gracefully
+  shutdown: 5.0
+
+  # Tiempo máximo para encolar una tarea (0 = no esperar si está llena)
+  enqueue: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROCESSING - Configuración de procesamiento
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Ajustes para el procesamiento de tareas.
+#
+processing:
+  # Tiempo de procesamiento por defecto para tareas de dataset (segundos)
+  default_dataset_time: 1.0
+
+  # Tiempo de procesamiento por defecto para comandos (segundos)
+  default_command_time: 0.1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PRIORITIES - Configuración de prioridades
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Define la prioridad por defecto para cada tipo de tarea.
+# Valores: 0=CRITICAL, 1=HIGH, 2=NORMAL, 3=LOW
+#
+priorities:
+  default_dataset: 2 # NORMAL
+  default_command: 1 # HIGH
+
+# ─────────────────────────────────────────────────────────────────────────────
+# METRICS - Configuración de métricas
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Ajustes para el sistema de métricas y monitoreo.
+#
+metrics:
+  # Número de tareas recientes a mantener para cálculo de promedios
+  history_size: 100
+
+  # Habilitar logging de eventos de tareas
+  log_events: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CLI - Configuración de la interfaz de línea de comandos
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Ajustes para la interfaz de usuario.
+#
+cli:
+  # Mostrar animaciones y colores
+  rich_output: true
+
+  # Auto-iniciar workers al arrancar
+  auto_start: false
+
+  # Rango de tiempo de procesamiento aleatorio para comando "flood"
+  flood:
+    min_time: 0.3
+    max_time: 2.0
+# ═══════════════════════════════════════════════════════════════════════════
+# PERFILES DE CONFIGURACIÓN
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Descomenta el perfil que desees usar, o crea el tuyo propio.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PERFIL: DESARROLLO (default actual)
+# ─────────────────────────────────────────────────────────────────────────────
+# workers:
+#   dataset: 4
+#   command: 2
+# queues:
+#   dataset: { max_size: 100 }
+#   command: { max_size: 50 }
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PERFIL: ALTO RENDIMIENTO
+# ─────────────────────────────────────────────────────────────────────────────
+# workers:
+#   dataset: 8
+#   command: 4
+# queues:
+#   dataset: { max_size: 500 }
+#   command: { max_size: 100 }
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PERFIL: RECURSOS LIMITADOS
+# ─────────────────────────────────────────────────────────────────────────────
+# workers:
+#   dataset: 2
+#   command: 1
+# queues:
+#   dataset: { max_size: 50 }
+#   command: { max_size: 25 }
+#
+# ═══════════════════════════════════════════════════════════════════════════

@@ -36,6 +36,7 @@ from queue_system import (
     Task,
     TaskPriority,
     TaskType,
+    get_config,
 )
 
 
@@ -189,12 +190,17 @@ def print_status(manager: QueueManager):
 class QueueCLI:
     """Clase principal de la CLI."""
     
-    def __init__(self, dataset_workers: int = 4, command_workers: int = 2):
+    def __init__(self, dataset_workers: int = None, command_workers: int = None):
+        # Cargar configuración desde config.yml
+        config = get_config()
+        
+        # Usar parámetros explícitos o valores de config.yml
+        _dataset_workers = dataset_workers or config.workers.dataset
+        _command_workers = command_workers or config.workers.command
+        
         self.manager = QueueManager(
-            dataset_workers=dataset_workers,
-            command_workers=command_workers,
-            dataset_queue_size=100,
-            command_queue_size=50,
+            dataset_workers=_dataset_workers,
+            command_workers=_command_workers,
         )
         self.running = True
         
@@ -417,17 +423,18 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="QueueSystem - CLI Interactiva para sistema de colas"
     )
+    config = get_config()
     parser.add_argument(
         "--dataset-workers", "-d",
         type=int,
-        default=4,
-        help="Número de workers para cola de datasets (default: 4)"
+        default=None,
+        help=f"Número de workers para cola de datasets (config.yml: {config.workers.dataset})"
     )
     parser.add_argument(
         "--command-workers", "-c",
         type=int,
-        default=2,
-        help="Número de workers para cola de comandos (default: 2)"
+        default=None,
+        help=f"Número de workers para cola de comandos (config.yml: {config.workers.command})"
     )
     return parser.parse_args()
 

@@ -6,12 +6,13 @@ pools de workers.
 """
 
 import asyncio
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Optional
 
 from .task import Task, TaskType, TaskPriority
 from .priority_queue import PriorityQueue
 from .worker_pool import WorkerPool
 from .metrics import QueueMetrics
+from .config import get_config, Config
 
 
 class QueueManager:
@@ -23,7 +24,11 @@ class QueueManager:
     - command_queue: Para comandos del sistema (ligeros)
     
     Ejemplo:
-        manager = QueueManager(dataset_workers=4, command_workers=2)
+        # Usando configuración desde config.yml
+        manager = QueueManager()
+        
+        # O con parámetros explícitos (sobreescribe config.yml)
+        manager = QueueManager(dataset_workers=8, command_workers=4)
         
         # Callbacks opcionales
         manager.on_task_complete = my_callback
@@ -41,30 +46,41 @@ class QueueManager:
 
     def __init__(
         self,
-        dataset_workers: int = 4,
-        command_workers: int = 2,
-        dataset_queue_size: int = 100,
-        command_queue_size: int = 50,
+        dataset_workers: Optional[int] = None,
+        command_workers: Optional[int] = None,
+        dataset_queue_size: Optional[int] = None,
+        command_queue_size: Optional[int] = None,
+        config: Optional[Config] = None,
     ):
         """
         Args:
-            dataset_workers: Número de workers para cola de datasets
-            command_workers: Número de workers para cola de comandos
-            dataset_queue_size: Tamaño máximo de cola de datasets
-            command_queue_size: Tamaño máximo de cola de comandos
+            dataset_workers: Número de workers para cola de datasets (default: config.yml)
+            command_workers: Número de workers para cola de comandos (default: config.yml)
+            dataset_queue_size: Tamaño máximo de cola de datasets (default: config.yml)
+            command_queue_size: Tamaño máximo de cola de comandos (default: config.yml)
+            config: Configuración personalizada (default: carga desde config.yml)
         """
+        # Cargar configuración
+        self._config = config or get_config()
+        
+        # Usar parámetros explícitos o valores de configuración
+        _dataset_workers = dataset_workers or self._config.workers.dataset
+        _command_workers = command_workers or self._config.workers.command
+        _dataset_queue_size = dataset_queue_size or self._config.queues.dataset.max_size
+        _command_queue_size = command_queue_size or self._config.queues.command.max_size
+        
         # Colas separadas por tipo
-        self.dataset_queue = PriorityQueue(maxsize=dataset_queue_size)
-        self.command_queue = PriorityQueue(maxsize=command_queue_size)
+        self.dataset_queue = PriorityQueue(maxsize=_dataset_queue_size)
+        self.command_queue = PriorityQueue(maxsize=_command_queue_size)
         
         # Pools de workers
         self.dataset_pool = WorkerPool(
-            num_workers=dataset_workers,
+            num_workers=_dataset_workers,
             queue=self.dataset_queue,
             name="Dataset"
         )
         self.command_pool = WorkerPool(
-            num_workers=command_workers,
+            num_workers=_command_workers,
             queue=self.command_queue,
             name="Command"
         )

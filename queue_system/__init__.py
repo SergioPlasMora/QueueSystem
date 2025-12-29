@@ -7,6 +7,7 @@ from .priority_queue import PriorityQueue
 from .worker_pool import WorkerPool
 from .queue_manager import QueueManager
 from .metrics import QueueMetrics
+from .config import Config, get_config, reload_config
 
 __all__ = [
     "Task",
@@ -16,4 +17,7 @@ __all__ = [
     "WorkerPool",
     "QueueManager",
     "QueueMetrics",
+    "Config",
+    "get_config",
+    "reload_config",
 ]
